@@ -1,0 +1,9 @@
+[Unit]
+Description = "RDS Database Monitoring Service"
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/rds-automation
+Environment="DB_HOST={{ db_host }}"
+ExecStart=/opt/rds-automation/venv/bin/python /opt/rds-automation/scripts/db_monitor.py

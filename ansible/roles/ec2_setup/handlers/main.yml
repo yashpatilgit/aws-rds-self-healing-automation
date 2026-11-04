@@ -1,0 +1,8 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for ec2_setup
+
+- name: Reload System configuration
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  become: true

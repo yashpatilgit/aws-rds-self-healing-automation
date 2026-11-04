@@ -1,0 +1,9 @@
+---
+- name: Configure RDS automation infratstructure
+  hosts: all
+  become: true
+
+  roles:
+   - ec2_setup
+   - database_setup
+    

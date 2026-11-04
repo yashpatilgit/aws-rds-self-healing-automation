@@ -1,0 +1,157 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for database_setup
+- name: Check for PyMysql installed or not
+  ansible.builtin.command:
+    cmd: /opt/rds-automation/venv/bin/python -c "import pymysql"
+
+  changed_when: false #mark it as ok not changed, as we are just checking
+
+
+
+
+# lookup('amazon.aws.aws_secret', db_secret_name) retrieves the secret from AWS Secrets Manager.
+# from_json converts the returned JSON string into an Ansible dictionary.
+# set_fact stores the credentials in the db_credentials variable for subsequent tasks.
+# no_log: true prevents Ansible from displaying the secret in task output.
+
+#retrieving the passwords for users from AWS Secrets Manager
+- name: Retrieve RDS credentials from AWS Secrets Manager
+  ansible.builtin.set_fact:
+    db_credentials: "{{ lookup('amazon.aws.aws_secret', db_secret_name) | from_json }}"
+  no_log: true
+
+#Create a database
+#All we have defined in the defaults, we are just using them
+- name: create a database 
+  community.mysql.mysql_db:
+    name: "{{db_name}}"
+    state: present
+    login_host: "{{db_host}}"
+    login_port: "{{db_port}}"
+    login_user: "{{db_credentials.username}}"
+    login_password: "{{db_credentials.password}}"
+  no_log: true
+
+
+# Verify PyMySQL
+# Retrieve RDS master credentials
+# Retrieve application-user credentials
+# Create application database
+# Create three database users
+# Assign permissions
+
+#Retrieve application-user credentials
+- name: Retrieve database user credentials
+  ansible.builtin.set_fact:
+    db_users_credentials: "{{lookup('amazon.aws.aws_secret',db_users_secret_name)|from_json }}"
+  no_log: true
+
+#Create application user
+- name: Create application database user
+  community.mysql.mysql_user:
+    name: "{{db_users_credentials[db_app_user].username}}"
+    password: "{{db_users_credentials[db_app_user].password}}"
+    priv: "{{db_name}}.*:SELECT,INSERT,UPDATE,DELETE"
+    host: "%"
+    state: present
+    login_host: "{{db_host}}"
+    login_port: "{{db_port}}"
+    login_user: "{{db_credentials.username}}"
+    login_password: "{{db_credentials.password}}"
+  no_log: true
+
+
+# Create read-only database user
+- name: Create read-only database user
+  community.mysql.mysql_user:
+    name: "{{ db_users_credentials[db_readonly_user].username }}"
+    password: "{{ db_users_credentials[db_readonly_user].password }}"
+    priv: "{{ db_name }}.*:SELECT"
+    host: "%"
+    state: present
+    login_host: "{{ db_host }}"
+    login_port: "{{ db_port }}"
+    login_user: "{{ db_credentials.username }}"
+    login_password: "{{ db_credentials.password }}"
+  no_log: true
+
+# Create automation database user
+- name: Create automation database user
+  community.mysql.mysql_user:
+    name: "{{ db_users_credentials[db_automation_user].username }}"
+    password: "{{ db_users_credentials[db_automation_user].password }}"
+    priv: "{{ db_name }}.*:SELECT"
+    host: "%"
+    state: present
+    login_host: "{{ db_host }}"
+    login_port: "{{ db_port }}"
+    login_user: "{{ db_credentials.username }}"
+    login_password: "{{ db_credentials.password }}"
+  no_log: true
+
+#Global process privilege task
+- name: Grant PROCESS privilege to automation user
+  community.mysql.mysql_user:
+    name: "{{db_user_credentials[db_automation_user].username}}"
+    host: "%"
+    priv: "*.*:PROCESS"
+    append_privs: true
+    state: present
+    login_host: "{{db_host}}"
+    login_port: "{{db_port}}"
+    login_user: "{{db_credentials.username}}"
+    login_password: "{{db_credentials.password}}"
+  no_log: true  
+
+
+#create automation schema
+- name: Create automation schema
+  community.mysql.mysql_query:
+    query: "CREATE SCHEMA IF NOT EXISTS {{db_schema}}"
+    login_host: "{{db_host}}"
+    login_port: "{{db_port}}"
+    login_db: "{{db_name}}"
+    login_user: "{{db_credentials.username}}"
+    login_password: "{{db_credentials.password}}"
+  no_log: true
+
+
+#create remediation audit table
+#This table will record which database session was targeted, why an action was taken, and whether it succeeded.
+- name: Create remediation audit table
+  community.mysql.mysql_query:
+    login_host: "{{db_host}}"
+    login_port: "{{db_port}}"
+    login_user: "{{db_credentials.username}}"
+    login_password: "{{db_credentials.password}}"
+    login_db: "{{db_schema}}"
+    query: |
+        CREATE TABLE IF NOT EXISTS remediation_audit(
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          event_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          action VARCHAR(100) NOT NULL,
+          target_thread_id BIGINT,
+          target_user VARCHAR(100),
+          reason TEXT,
+          status VARCHAR(50),
+          details TEXT
+        )
+  no_log: true
+
+
+
+# grant audit logging permissions to the automation user
+- name: Grant automation user permission to write audit records
+  community.mysql.mysql_user:
+    name: "{{db_users_credentials[db_automation_user].username}}"
+    host: "%"
+    priv: "{{db_schema}}.remediation_audit:INSERT"
+    append_privs: true
+    state: present
+    login_host: "{{db_host}}"
+    login_port: "{{db_port}}"
+    login_user: "{{db_credentials.username}}"
+    login_password: "{{db_credentials.password}}"
+  no_log: true
+    

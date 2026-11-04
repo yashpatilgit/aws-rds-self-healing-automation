@@ -1,0 +1,124 @@
+---
+
+#SPDX-License-Identifier: MIT-0
+# tasks file for ec2_setup
+
+#1. Updating the apt
+- name: Ansible apt update
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+#2. Installing packages
+- name: Install Relevant packages
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-venv
+      - mysql-client
+    state: present
+  become: true
+
+# 3. Create the application directory
+- name: Create automation directory
+  ansible.builtin.file:
+    path: /opt/rds-automation
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: true
+
+#7=4+2+1 read + write + execute
+
+
+
+
+#4. creates dedicated python virtual environment: 
+- name: Create Python virtual environment
+  ansible.builtin.command: 
+    cmd: python3 -m venv /opt/rds-automation/venv
+    creates: /opt/rds-automation/venv/bin/python
+  become: true
+  become_user: ubuntu
+
+#5. Install Python dependencies in the virtual environment: 
+- name: Install Python libraries
+  ansible.builtin.pip:
+    name:
+      - pymysql
+      - boto3
+    virtualenv: /opt/rds-automation/venv
+    state: present
+  become: true
+  become_user: ubuntu
+
+
+#6. Create a script directory
+- name: creating a script directory
+  ansible.builtin.file:
+    path: /opt/rds-automation/scripts
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: true
+  become_user: ubuntu
+
+#create logs directory
+- name: Create automation logs directory
+  ansible.builtin.file:
+    path: /opt/rds-automation/logs
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: true
+
+#7. Copying file from control node to managed nodes
+- name: copy file from control node
+  ansible.builtin.copy:
+    src: db_monitor.py
+    dest: /opt/rds-automation/scripts/db_monitor.py
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+  become: true
+  become_user: ubuntu
+
+#8. Deploy Jinja2 Service Template using Ansible
+- name: Deploy service file
+  ansible.builtin.template:
+    src: rds-monitor.service.j2
+    dest: /etc/systemd/system/rds-monitor.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify:
+    - Reload System configuration
+
+#9. Deploy Jinja2 Timer template using Ansible
+- name: Deploy timer file
+  ansible.builtin.template:
+    src: rds-monitor.timer.j2
+    dest: /etc/systemd/system/rds-monitor.timer
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify:
+    - Reload System configuration
+
+  
+
+#11. Enable the timer once the ec2 reboots
+# - name: Enable the timer
+#   ansible.builtin.systemd_service:
+#     name: rds-monitor.timer
+#     state: started
+#     enabled: true
+#   become: true
+
+

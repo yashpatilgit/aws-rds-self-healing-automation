@@ -1,0 +1,62 @@
+resource "aws_db_subnet_group" "main" {
+  name        = "${var.project_name}-${var.environment}-db-subnet-group"
+  description = "Private subnet group for RDS MySQL"
+  subnet_ids  = var.private_subnet_ids
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-db-subnet-group"
+    Environment = var.environment
+    Project     = var.project_name
+    ManagedBy   = "Terraform"
+  }
+}
+
+resource "aws_db_instance" "main" {
+
+  identifier             = "${var.project_name}-${var.environment}-mysql"
+  engine                 = "mysql"
+  engine_version         = "8.0"
+  instance_class         = "db.t3.micro"
+  allocated_storage      = 20
+  max_allocated_storage  = 50
+  storage_type           = "gp3"
+  db_name                = var.db_name
+  username               = "dbadmin"
+  password               = random_password.master.result
+  db_subnet_group_name   = aws_db_subnet_group.main.name
+  vpc_security_group_ids = [var.rds_security_group_id]
+
+  publicly_accessible     = false
+  multi_az                = false
+  backup_retention_period = 1
+  deletion_protection     = false
+  skip_final_snapshot     = true //delete rds without taking the final snapshot
+
+  storage_encrypted = true
+  kms_key_id        = aws_kms_key.rds.id
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-mysql"
+    Environment = var.environment
+    Project     = var.project_name
+    ManagedBy   = "Terraform"
+  }
+}
+
+resource "random_password" "master" {
+  length  = 15
+  special = false
+}
+
+resource "aws_kms_key" "rds" {
+  description             = "Customer-managed key for RDS encryption"
+  enable_key_rotation     = true
+  deletion_window_in_days = 7
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-rds-kms"
+    Environment = var.environment
+    Project     = var.project_name
+    ManagedBy   = "Terraform"
+  }
+}

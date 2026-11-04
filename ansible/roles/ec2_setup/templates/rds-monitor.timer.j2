@@ -1,0 +1,10 @@
+[Unit]
+Description="RDS Database Monitoring Timer"
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=rds-monitor.service
+
+[Install]
+WantedBy=timers.target
