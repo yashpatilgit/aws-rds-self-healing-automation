@@ -1,9 +1,8 @@
 ---
-
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 # tasks file for ec2_setup
 
-#1. Updating the apt
+# 1. Updating the apt
 - name: Ansible apt update
   ansible.builtin.apt:
     update_cache: true
@@ -27,23 +26,20 @@
     state: directory
     owner: ubuntu
     group: ubuntu
-    mode: '0755'
+    mode: "0755"
   become: true
 
 #7=4+2+1 read + write + execute
 
-
-
-
-#4. creates dedicated python virtual environment: 
+#4. creates dedicated python virtual environment:
 - name: Create Python virtual environment
-  ansible.builtin.command: 
+  ansible.builtin.command:
     cmd: python3 -m venv /opt/rds-automation/venv
     creates: /opt/rds-automation/venv/bin/python
   become: true
   become_user: ubuntu
 
-#5. Install Python dependencies in the virtual environment: 
+#5. Install Python dependencies in the virtual environment:
 - name: Install Python libraries
   ansible.builtin.pip:
     name:
@@ -54,15 +50,14 @@
   become: true
   become_user: ubuntu
 
-
 #6. Create a script directory
-- name: creating a script directory
+- name: Creating a script directory
   ansible.builtin.file:
     path: /opt/rds-automation/scripts
     state: directory
     owner: ubuntu
     group: ubuntu
-    mode: '0755'
+    mode: "0755"
   become: true
   become_user: ubuntu
 
@@ -73,17 +68,17 @@
     state: directory
     owner: ubuntu
     group: ubuntu
-    mode: '0755'
+    mode: "0755"
   become: true
 
 #7. Copying file from control node to managed nodes
-- name: copy file from control node
+- name: Copy file from control node
   ansible.builtin.copy:
     src: db_monitor.py
     dest: /opt/rds-automation/scripts/db_monitor.py
     owner: ubuntu
     group: ubuntu
-    mode: '0644'
+    mode: "0644"
   become: true
   become_user: ubuntu
 
@@ -94,7 +89,7 @@
     dest: /etc/systemd/system/rds-monitor.service
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   become: true
   notify:
     - Reload System configuration
@@ -106,12 +101,10 @@
     dest: /etc/systemd/system/rds-monitor.timer
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   become: true
   notify:
     - Reload System configuration
-
-  
 
 #11. Enable the timer once the ec2 reboots
 # - name: Enable the timer
@@ -120,5 +113,3 @@
 #     state: started
 #     enabled: true
 #   become: true
-
-

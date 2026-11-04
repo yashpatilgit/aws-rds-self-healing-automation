@@ -4,6 +4,5 @@
   become: true
 
   roles:
-   - ec2_setup
-   - database_setup
-    
+    - ec2_setup
+    - database_setup

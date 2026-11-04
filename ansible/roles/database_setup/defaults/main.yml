@@ -1,25 +1,16 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# defaults file for database_setup
+# defaults for database_setup role
 
-db_host: ""
-db_port: 3306
-db_name: 'automation_db'
-db_schema: 'ops'
-db_app_user: app_user
-db_readonly_user: readonly_user
-db_automation_user: ops_automation
-db_connection_limit: 20
+database_setup_db_host: ""
+database_setup_db_port: 3306
+database_setup_db_name: "automation_db"
+database_setup_db_schema: "ops"
+database_setup_db_app_user: "app_user"
+database_setup_db_readonly_user: "readonly_user"
+database_setup_db_automation_user: "ops_automation"
+database_setup_db_connection_limit: 20
 
-#AWS secret manager
-#its not a path, its a naming convention - proj name/env/purpose
-db_secret_name: aws-rds-self-healing/dev/rds-master
-# app_secret_name: aws-rds-self-healing/dev/app-user
-# readonly_secret_name: aws-rds-self-healing/dev/readonly-user
-# automation_secret_name: aws-rds-self-healing/dev/automation-user
-db_users_secret_name: aws-rds-self-healing/dev/database-users
-
-
-
-
-
+# AWS Secrets Manager
+# Naming convention: project/environment/purpose
+database_setup_db_secret_name: "aws-rds-self-healing/dev/rds-master"
+database_setup_db_users_secret_name: "aws-rds-self-healing/dev/database-users"
