@@ -21,7 +21,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform format Check
+      - name: Terraform Format Check
         working-directory: terraform
         run: terraform fmt -check -recursive
 
@@ -57,7 +57,7 @@ jobs:
         working-directory: ansible
         run: ansible-galaxy collection install -r requirements.yml
 
-      - name: Ansible Syntax Checkout
+      - name: Ansible Syntax Check
         working-directory: ansible
         run: ansible-playbook --syntax-check site.yml
 
@@ -86,4 +86,4 @@ jobs:
           pip install boto3 pymysql
 
       - name: Run unit Tests
-        run: python -m unittest discover -s test -v
+        run: python -m unittest discover -s tests -v
