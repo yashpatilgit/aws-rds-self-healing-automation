@@ -9,7 +9,7 @@ resource "aws_instance" "automation" {
   vpc_security_group_ids      = [var.ec2_security_group_id]
   associate_public_ip_address = false
 
-    user_data = <<-EOF
+  user_data = <<-EOF
     #!/bin/bash
     set -e
 
