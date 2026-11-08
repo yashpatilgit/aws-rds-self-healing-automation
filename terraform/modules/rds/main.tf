@@ -33,7 +33,7 @@ resource "aws_db_instance" "main" {
   skip_final_snapshot     = true //delete rds without taking the final snapshot
 
   storage_encrypted = true
-  kms_key_id        = aws_kms_key.rds.id
+  kms_key_id        = aws_kms_key.rds.arn
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-mysql"
