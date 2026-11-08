@@ -58,3 +58,14 @@ resource "aws_vpc_security_group_ingress_rule" "ssm_https_from_ec2" {
   to_port                      = 443
   description                  = "Allow HTTPS from automation EC2"
 }
+
+resource "aws_vpc_security_group_egress_rule" "ec2_https_to_ssm" {
+  security_group_id = aws_security_group.ec2.id
+  referenced_security_group_id = aws_security_group.ssm_endpoints.id
+
+  ip_protocol = "tcp"
+  from_port = 443
+  to_port = 443
+
+  description = "Allow HTTPS to SSM endpoint"
+}
