@@ -17,6 +17,7 @@ module "security" {
   source       = "./modules/security"
   project_name = var.project_name
   environment  = var.environment
+  aws_region   = var.aws_region
   vpc_id       = module.networking.vpc_id
 }
 
@@ -45,4 +46,5 @@ module "vpc_endpoints" {
   private_subnet_ids         = module.networking.private_subnet_id
   endpoint_security_group_id = module.security.ssm_endpoint_security_group_id
   aws_region                 = var.aws_region
+  private_route_table_ids    = [module.networking.private_route_table_id]
 }

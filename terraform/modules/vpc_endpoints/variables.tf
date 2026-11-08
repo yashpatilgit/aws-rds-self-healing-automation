@@ -27,3 +27,8 @@ variable "aws_region" {
   description = "Region for AWS endpoint"
   type        = string
 }
+
+variable "private_route_table_ids" {
+  description = "Private Route table IDS for S3 Gateway endpoint"
+  type        = list(string)
+}

@@ -53,3 +53,7 @@ Thumbs.db
 
 #ansible local files
 .ansible/
+inventory.ini
+
+# Local installer
+*.deb
