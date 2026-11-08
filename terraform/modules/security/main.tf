@@ -50,7 +50,7 @@ resource "aws_security_group" "ssm_endpoints" {
 
 }
 
-resource "aws_vpc_security_group_egress_rule" "ssm_https_from_ec2" {
+resource "aws_vpc_security_group_ingress_rule" "ssm_https_from_ec2" {
   security_group_id            = aws_security_group.ssm_endpoints.id
   referenced_security_group_id = aws_security_group.ec2.id
   ip_protocol                  = "tcp"
