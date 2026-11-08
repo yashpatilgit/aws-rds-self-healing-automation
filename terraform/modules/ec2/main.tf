@@ -9,6 +9,17 @@ resource "aws_instance" "automation" {
   vpc_security_group_ids      = [var.ec2_security_group_id]
   associate_public_ip_address = false
 
+    user_data = <<-EOF
+    #!/bin/bash
+    set -e
+
+    if ! snap list amazon-ssm-agent >/dev/null 2>&1; then
+        snap install amazon-ssm-agent --classic
+    fi
+
+    snap start amazon-ssm-agent
+  EOF
+
   iam_instance_profile = aws_iam_instance_profile.automation.name
 
 
