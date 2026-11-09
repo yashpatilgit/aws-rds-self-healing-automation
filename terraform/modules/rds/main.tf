@@ -48,6 +48,19 @@ resource "random_password" "master" {
   special = false
 }
 
+resource "aws_secretsmanager_secret" "rds_master" {
+  name = "aws-rds-self-healing/dev/rds-master"
+}
+
+resource "aws_secretsmanager_secret_version" "rds_master" {
+  secret_id = aws_secretsmanager_secret.rds_master.id
+
+  secret_string = jsondecode({
+    username = "dbadmin"
+    password = random_password.master.result
+  })
+}
+
 resource "aws_kms_key" "rds" {
   description             = "Customer-managed key for RDS encryption"
   enable_key_rotation     = true
