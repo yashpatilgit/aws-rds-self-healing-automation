@@ -17,3 +17,7 @@ variable "ec2_security_group_id" {
   description = "Security group ID for automation EC2"
   type        = string
 }
+
+variable "aws_region" {
+  type = string
+}

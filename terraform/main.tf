@@ -36,6 +36,7 @@ module "ec2" {
   environment           = var.environment
   subnet_id             = module.networking.private_subnet_id[0]
   ec2_security_group_id = module.security.ec2_security_group_id
+  aws_region            = var.aws_region
 }
 
 module "vpc_endpoints" {

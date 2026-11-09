@@ -59,6 +59,27 @@ resource "aws_iam_role_policy_attachment" "ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy" "secrets_manager" {
+  name = "${var.project_name}-${var.environment}-secrets-manager"
+  role = aws_iam_role.automation.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          "arn:aws:secretsmanager:${var.aws_region}:470309606650:secret:aws-rds-self-healing/dev/rds-master-*",
+          "arn:aws:secretsmanager:${var.aws_region}:470309606650:secret:aws-rds-self-healing/dev/database-users-*"
+        ]
+      }
+    ]
+  })
+}
+
 
 resource "aws_iam_instance_profile" "automation" {
   name = "${var.project_name}-${var.environment}-instance-profile"
