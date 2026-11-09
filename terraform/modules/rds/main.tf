@@ -55,7 +55,7 @@ resource "aws_secretsmanager_secret" "rds_master" {
 resource "aws_secretsmanager_secret_version" "rds_master" {
   secret_id = aws_secretsmanager_secret.rds_master.id
 
-  secret_string = jsondecode({
+  secret_string = jsonencode({
     username = "dbadmin"
     password = random_password.master.result
   })
