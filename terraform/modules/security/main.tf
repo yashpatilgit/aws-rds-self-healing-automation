@@ -70,6 +70,17 @@ resource "aws_vpc_security_group_egress_rule" "ec2_https_to_ssm" {
   description = "Allow HTTPS to SSM endpoint"
 }
 
+resource "aws_vpc_security_group_egress_rule" "ec2_mysql_to_rds" {
+  security_group_id            = aws_security_group.ec2.id
+  referenced_security_group_id = aws_security_group.rds.id
+
+  ip_protocol = "tcp"
+  from_port   = 3306
+  to_port     = 3306
+
+  description = "Allow MySQL access to RDS"
+}
+
 data "aws_prefix_list" "S3" {
   name = "com.amazonaws.${var.aws_region}.s3"
 }
