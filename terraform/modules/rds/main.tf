@@ -48,6 +48,21 @@ resource "random_password" "master" {
   special = false
 }
 
+resource "random_password" "app_user" {
+  length  = 15
+  special = false
+}
+
+resource "random_password" "readonly_user" {
+  length  = 15
+  special = false
+}
+
+resource "random_password" "ops_automation" {
+  length  = 15
+  special = false
+}
+
 resource "aws_secretsmanager_secret" "rds_master" {
   name = "aws-rds-self-healing/dev/rds-master"
 }
@@ -60,6 +75,31 @@ resource "aws_secretsmanager_secret_version" "rds_master" {
     password = random_password.master.result
   })
 }
+
+resource "aws_secretsmanager_secret" "database_users" {
+  name = "aws-rds-self-healing/dev/database-users"
+}
+
+resource "aws_secretsmanager_secret_version" "database_users" {
+  secret_id = aws_secretsmanager_secret.database_users.id
+
+  secret_string = jsonencode({
+    app_user = {
+      username = "app_user"
+      password = random_password.app_user.result
+    }
+    readonly_user = {
+      username = "readonly_user"
+      password = random_password.readonly_user.result
+    }
+    ops_automation = {
+      username = "ops_automation"
+      password = random_password.ops_automation.result
+    }
+  })
+
+}
+
 
 resource "aws_kms_key" "rds" {
   description             = "Customer-managed key for RDS encryption"
